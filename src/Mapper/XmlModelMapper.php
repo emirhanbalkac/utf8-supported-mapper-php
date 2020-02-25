@@ -23,6 +23,11 @@ class XmlModelMapper extends ModelMapper implements IModelMapper
 
     const ATTR_KEY = '@attributes';
     const VALUE_KEY = '@value';
+    const VALUE_KEY_CDATA = '@valueCDATA';
+
+    const XML_CDATA_ANNOTATION = 'xmlCDATA';
+
+    private static $CDATA_PROPERTY_PREFIX = 'cdata_';
 
     /**
      * @override Converts xml to an object and then maps
@@ -101,7 +106,8 @@ class XmlModelMapper extends ModelMapper implements IModelMapper
         $object = new \stdClass();
         $result = null;
 
-        $result = $this->mapAttributes($domElement, $object);
+        $this->mapAttributes($domElement, $object);
+
         $result = $this->mapNamespaces($domElement, $object);
 
         for ($i = 0; $i < $domElement->childNodes->length; $i++) {
@@ -112,6 +118,7 @@ class XmlModelMapper extends ModelMapper implements IModelMapper
                     $result = $this->mapDomElement($element, $object, $isElementArray);
                     break;
                 case XML_TEXT_NODE:
+                case XML_CDATA_SECTION_NODE:
                     $result = $this->mapDomText($element, $object, $isElementArray);
                     break;
             }
@@ -260,7 +267,8 @@ class XmlModelMapper extends ModelMapper implements IModelMapper
         $xmlAnnotationName,
         $default = null,
         $annotationHandler = null
-    ) {
+    )
+    {
         $value = $default;
         if ($classInfo->getDocBlock()->hasAnnotation($xmlAnnotationName) &&
             !Validation::isEmpty($classInfo->getDocBlock()->getAnnotation($xmlAnnotationName))) {
@@ -298,8 +306,14 @@ class XmlModelMapper extends ModelMapper implements IModelMapper
             }
 
             if ($property->getDocBlock()->hasAnnotation(AnnotationEnum::XML_NODE_VALUE)) {
-                $valueKey = self::VALUE_KEY;
+                $valueKey = $property->getDocBlock()->hasAnnotation(self::XML_CDATA_ANNOTATION) ? self::VALUE_KEY_CDATA : self::VALUE_KEY;
                 $unmappedObject->$valueKey = $propertyValue;
+                continue;
+            }
+
+            if ($property->getDocBlock()->hasAnnotation(self::XML_CDATA_ANNOTATION)) {
+                $attributeKey = self::$CDATA_PROPERTY_PREFIX . $propertyKey;
+                $unmappedObject->$attributeKey = $propertyValue;
                 continue;
             }
 
@@ -349,7 +363,7 @@ class XmlModelMapper extends ModelMapper implements IModelMapper
     {
 
         $this->addDomElementAttributes($source, $domElement);
-
+        $cdataKey = self::VALUE_KEY_CDATA;
         $valueKey = self::VALUE_KEY;
         if (isset($source->$valueKey)) {
             if (is_bool($source->$valueKey)) {
@@ -357,6 +371,8 @@ class XmlModelMapper extends ModelMapper implements IModelMapper
 
             }
             $domElement->nodeValue = $source->$valueKey;
+        } else if (isset($source->$cdataKey)) {
+            $domElement->appendChild($domElement->ownerDocument->createCDATASection($source->$cdataKey));
         } else {
             foreach ($source as $key => $value) {
                 $this->populateDomElementByType($domElement, $key, $value);
@@ -393,6 +409,11 @@ class XmlModelMapper extends ModelMapper implements IModelMapper
             $this->addDomElementObject($domElement, $key, $value);
         } elseif (is_array($value)) {
             $this->addDomElementArray($domElement, $key, $value);
+        } elseif (strpos($key, self::$CDATA_PROPERTY_PREFIX) !== false) {
+            $key = explode(self::$CDATA_PROPERTY_PREFIX, $key)[1];
+            $document = $domElement->ownerDocument;
+            $domElement->appendChild($document->createElement($key))
+                ->appendChild($document->createCDATASection($value));
         } else {
             $this->addDomElement($domElement, $key, $value);
         }

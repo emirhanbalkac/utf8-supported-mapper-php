@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<video>
+    <title><![CDATA[Lorem ipsum dolor sit amet]]></title>
+    <description lang="en"><![CDATA[Lorem ipsum dolor sit amet]]></description>
+    <description lang="ru"><![CDATA[Lorem ipsum dolor sit amet]]></description>
+    <duration>52</duration>
+    <max_quality>3</max_quality>
+    <main_thumb_index>2</main_thumb_index>
+</video>
