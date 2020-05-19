@@ -1,5 +1,5 @@
 {
-    "name": "runz0rd/mapper-php",
+    "name": "runz0rd/utf8-supported-mapper-php",
     "description": "Model mapping, unmapping and validation",
     "keywords": ["library", "php", "object", "mapper", "validator", "traits"],
     "license": "MIT",
