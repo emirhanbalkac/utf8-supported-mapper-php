@@ -7,58 +7,72 @@
  */
 
 namespace Traits;
-use Mapper\ModelMapperException;
+
 use Mapper\ModelMapper;
-use Common\Util\Validation;
+use Mapper\ModelMapperException;
 use Mapper\XmlModelMapper;
 
-trait MappableTrait {
+trait MappableTrait
+{
 
-	/**
-	 * @param array $data
-	 * @throws \InvalidArgumentException
-	 * @throws ModelMapperException
-	 */
-	public function mapFromArray(array $data) {
-		$json = json_encode($data);
-        if($json === false) {
+    /**
+     * @param array $data
+     *
+     * @throws \InvalidArgumentException
+     * @throws ModelMapperException
+     */
+    public function mapFromArray(array $data)
+    {
+        $json = json_encode($data);
+        if ($json === false) {
             throw new \InvalidArgumentException('Invalid array supplied.');
         }
-		$object = json_decode($json);
-        if($object === null) {
+        $object = json_decode($json);
+        if ($object === null) {
             throw new \InvalidArgumentException('Invalid array supplied.');
         }
 
-		$this->mapFromObject($object);
-	}
+        return $this->mapFromObject($object);
+    }
 
-	/**
-	 * @param string $data
-	 * @throws \InvalidArgumentException
-	 * @throws ModelMapperException
-	 */
-	public function mapFromJson($data) {
-		$object = json_decode($data);
-        if($object === null) {
+    /**
+     * @param string $data
+     *
+     * @throws \InvalidArgumentException
+     * @throws ModelMapperException
+     */
+    public function mapFromJson($data)
+    {
+        $object = json_decode($data);
+        if ($object === null) {
             throw new \InvalidArgumentException('Invalid json supplied.');
         }
 
-		$this->mapFromObject($object);
-	}
-
-	/**
-	 * @param $object
-	 */
-	public function mapFromObject($object) {
-		$mapper = new ModelMapper();
-		$mapper->map($object, $this);
-	}
+        return $this->mapFromObject($object);
+    }
 
     /**
-     * @param string $xml
+     * @param $object
+     *
+     * @return object
      */
-    public function mapFromXml($xml) {
+    public function mapFromObject($object)
+    {
+        $mapper = new ModelMapper();
+
+        return $mapper->map($object, $this);
+    }
+
+    /**
+     * @param $xml
+     *
+     * @return object
+     * @throws ModelMapperException
+     */
+    public function mapFromXml($xml)
+    {
         $mapper = new XmlModelMapper();
-        $mapper->map($xml, $this);
+
+        return $mapper->map($xml, $this);
     }
 }
