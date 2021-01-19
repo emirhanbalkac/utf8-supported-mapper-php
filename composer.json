@@ -16,7 +16,7 @@
     },
     "require": {
         "runz0rd/common-php": "2.2.*",
-        "doctrine/annotations": "1.4.*",
+        "doctrine/annotations": "^1",
         "doctrine/cache": "^1"
     },
     "require-dev": {
